@@ -1,0 +1,1 @@
+ sqoop export --connect jdbc:mysql://localhost/youbedb --username root --password bhoomi38 --table top10ineachcategory3 --export-dir /user/hive/warehouse/youtubedb.db/abc --input-fields-terminated-by "\001"
