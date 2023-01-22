@@ -3,4 +3,4 @@
 -👀 I’m interested in Bigdata development<br>
 -🌱 I’m currently learning Bigdata technologies(Hadoop,Hive,Spark,Scala,Sqoop,Mysql,Python etc)<br>
 -📫 My Linked- bhoomika-sen<br>
--This Repo contains all the Projects related to Spark
+-This Repo contains all the Projects i have created Using Spark framework and other Bigdata tools as well
