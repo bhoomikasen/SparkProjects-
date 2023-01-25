@@ -29,9 +29,17 @@ The main objective of this project is to demonstrate by using Bigdata concepts,<
 5.Power Bi<br>
 
 *Some Data Visuals of this Project*<br>
-![image]<br>
+Number of positive,negative and neutral reviews :<br>
+![image](https://user-images.githubusercontent.com/83513160/214647413-925c3832-97db-4a37-bde3-50a458023b56.png)
 <br>
-![image]
+<br>
+Most famous manufaturers:<br>
+![image](https://user-images.githubusercontent.com/83513160/214646624-3205ef23-92ff-40ff-a245-fb0da82c24a8.png)
+<br>
+<br>
+![image](https://user-images.githubusercontent.com/83513160/214647163-38d4f792-733e-4d91-9652-4adaf3ee7095.png)
+
+
 
 
 
