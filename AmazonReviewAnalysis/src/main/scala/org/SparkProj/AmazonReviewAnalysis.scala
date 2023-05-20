@@ -23,7 +23,8 @@ trait SparkJOb{
   logger.info("SparkSession created...........")
 }
 
-object AmazonReviewAnalysis extends App with SparkJOb {//extending App, so that the body of object becomes your main function. "args" is a supplied value, you can just use it.
+object AmazonReviewAnalysis extends App with SparkJOb { //extending App, so that the body of object becomes your main function. "args" is a supplied value, you can just use it.
+
   import spark.implicits._
 
   val dataBase = args(0)
@@ -31,12 +32,13 @@ object AmazonReviewAnalysis extends App with SparkJOb {//extending App, so that 
 
   //reading property file
   Source.fromFile("C:\\Users\\Asus\\IdeaProjects\\AmazonReviewAnalysis\\src\\main\\resources\\system.properties").getLines()
-  var configMap=Source.fromFile("C:\\Users\\Asus\\IdeaProjects\\AmazonReviewAnalysis\\src\\main\\resources\\system.properties").getLines()
-    .filter(line => line.contains("=")).map{ line => val tkns=line.split("=")
-    if(tkns.size==1){
-      (tkns(0) -> "" )
-    }else{
-      (tkns(0) ->  tkns(1))
+  var configMap = Source.fromFile("C:\\Users\\Asus\\IdeaProjects\\AmazonReviewAnalysis\\src\\main\\resources\\system.properties").getLines()
+    .filter(line => line.contains("=")).map { line =>
+    val tkns = line.split("=")
+    if (tkns.size == 1) {
+      (tkns(0) -> "")
+    } else {
+      (tkns(0) -> tkns(1))
     }
   }.toMap
 
@@ -86,15 +88,15 @@ object AmazonReviewAnalysis extends App with SparkJOb {//extending App, so that 
     saveToMysql(FinalInitialFinalRewviews, mysqlDB + ".AmazonreviewAnalysis")
     logger.info("Stopping SparkSession...........")
     spark.stop()
-  }//End of try
+  } //End of try
   catch {
-    case e: Exception=>
-      val error_msg=e.getMessage
-      println("[FAILED]:"+error_msg)
+    case e: Exception =>
+      val error_msg = e.getMessage
+      println("[FAILED]:" + error_msg)
   }
 
 
-  def saveToMysql(DF:DataFrame,table:String): Unit = {
+  def saveToMysql(DF: DataFrame, table: String): Unit = {
     val prop = new java.util.Properties()
     prop.put("user", configMap("userName"))
     prop.put("password", configMap("password"))
@@ -102,32 +104,33 @@ object AmazonReviewAnalysis extends App with SparkJOb {//extending App, so that 
     println("data saved to MYSQL............")
   }
 
-  def percentage(DFname:String,givennumber:Long,TotalNumber:Long): Unit ={
-    val totalPercentage=(givennumber.toFloat/TotalNumber.toFloat)//*100
-    println(f" ${DFname} : ${givennumber} reviews ${totalPercentage*100}%.0f%%")
+  def percentage(DFname: String, givennumber: Long, TotalNumber: Long): Unit = {
+    val totalPercentage = (givennumber.toFloat / TotalNumber.toFloat) //*100
+    println(f" ${DFname} : ${givennumber} reviews ${totalPercentage * 100}%.0f%%")
   }
 
-  def lower_clean_str(x:Column)= {
-    val punc ="""[\p{Punct}&&[^.]]"""
+  def lower_clean_str(x: Column) = {
+    val punc = """[\p{Punct}&&[^.]]"""
     var lowercased_str = x.toString().toLowerCase()
-    for(ch <-0 to  lowercased_str.length-1) {
+    for (ch <- 0 to lowercased_str.length - 1) {
       lowercased_str
-    = lowercased_str.replace(punc(ch),' ')
+      = lowercased_str.replace(punc(ch), ' ')
     }
   }
-  def textClean(sentimentsDF:DataFrame,sentimentVal:String): Unit ={
-    val removePuctuations=sentimentsDF.select("reviews_text","sentiment")
-      .withColumn("reviews_text",explode(split(regexp_replace(col("reviews_text"),"[,.!?:;*()\"\'/~?$]", "")," ")))
-    val wordCountOfSentiment=removePuctuations.filter(col("sentiment")===sentimentVal)
-      .groupBy("reviews_text").count()//.show()  replacing punctuation and extra other marks
-    val stop_words =List("a", "an","at", "the", "this", "that", "is", "it", "to", "and","i","for","of","as","in","on","have","so","these","them","has","we","had","if","they","my","with","you","not","was","its","are","can","be","were","would","will") //stop words to be removed
-    val removeStopWords=wordCountOfSentiment.select("reviews_text").map(f=>f.getString(0))
+
+  def textClean(sentimentsDF: DataFrame, sentimentVal: String): Unit = {
+    val removePuctuations = sentimentsDF.select("reviews_text", "sentiment")
+      .withColumn("reviews_text", explode(split(regexp_replace(col("reviews_text"), "[,.!?:;*()\"\'/~?$]", ""), " ")))
+    val wordCountOfSentiment = removePuctuations.filter(col("sentiment") === sentimentVal)
+      .groupBy("reviews_text").count() //.show()  replacing punctuation and extra other marks
+    val stop_words = List("a", "an", "at", "the", "this", "that", "is", "it", "to", "and", "i", "for", "of", "as", "in", "on", "have", "so", "these", "them", "has", "we", "had", "if", "they", "my", "with", "you", "not", "was", "its", "are", "can", "be", "were", "would", "will") //stop words to be removed
+    val removeStopWords = wordCountOfSentiment.select("reviews_text").map(f => f.getString(0))
       .collect.filter(!stop_words.contains(_)).toSeq //Filtering out stop words from DF anf converting it to Seq
-    val finalremoveStopWords=removeStopWords.toDF("words")
-    val finalDF=finalremoveStopWords.join(wordCountOfSentiment,wordCountOfSentiment("reviews_text")===finalremoveStopWords("words"))
-      .select("words","count")
+    val finalremoveStopWords = removeStopWords.toDF("words")
+    val finalDF = finalremoveStopWords.join(wordCountOfSentiment, wordCountOfSentiment("reviews_text") === finalremoveStopWords("words"))
+      .select("words", "count")
       .orderBy(desc("count")) //joinig finalremoveStopWords with original DF to get the counts of words
-    if(sentimentVal=="positive") {
+    if (sentimentVal == "positive") {
       saveToMysql(finalDF, mysqlDB + ".postiveWords")
     }
     else {
